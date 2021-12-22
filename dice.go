@@ -40,3 +40,14 @@ func (d Dice) String() string {
 
 	return buffer.String()
 }
+
+// Clone clones a dice creating and returning a new dice
+func (d Dice) Clone() Dice {
+	result := d
+	return result
+}
+
+// Roll North
+func (d *Dice) RollNorth() {
+	d.South, d.Top, d.North, d.Bottom = d.Bottom, d.South, d.Top, d.North
+}

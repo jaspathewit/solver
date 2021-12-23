@@ -47,7 +47,22 @@ func (d Dice) Clone() Dice {
 	return result
 }
 
-// Roll North
+// RollNorth
 func (d *Dice) RollNorth() {
 	d.South, d.Top, d.North, d.Bottom = d.Bottom, d.South, d.Top, d.North
+}
+
+// RollEast
+func (d *Dice) RollEast() {
+	d.East, d.Top, d.West, d.Bottom = d.Top, d.West, d.Bottom, d.East
+}
+
+// RollSouth
+func (d *Dice) RollSouth() {
+	d.South, d.Top, d.North, d.Bottom = d.Top, d.North, d.Bottom, d.South
+}
+
+// RollWest
+func (d *Dice) RollWest() {
+	d.West, d.Top, d.East, d.Bottom = d.Top, d.East, d.Bottom, d.West
 }

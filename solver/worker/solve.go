@@ -1,0 +1,116 @@
+package worker
+
+import (
+	"fmt"
+	"question20/puzzle"
+	"question20/solver"
+	"question20/task"
+	"sync"
+
+	log "github.com/sirupsen/logrus"
+)
+
+// SolveWorker concrete task.Worker implementation that solves puzzle
+type SolveWorker struct {
+	Name string
+	//OutputPath string
+	//Prefix     string
+	//ByDate     bool
+}
+
+// Solve creates SolveWorkers and initiates the solving process
+func Solve(board puzzle.Board, s solver.Solver) (task.Result, error) {
+
+	// numCPUs := runtime.NumCPU()
+	numCPUs := 1
+	// channel on which tasks can be submitted (Larger than the number of Workers)
+	taskChannel := make(chan task.Task, numCPUs+10)
+	// channel on which errors can be submitted
+	errorChannel := make(chan error, numCPUs+10)
+	// channel on which the solved Board is received
+	resultChannel := make(chan task.Result, 1)
+	defer close(resultChannel)
+
+	// wait group which all workers will notify when done
+	var wg sync.WaitGroup
+
+	workers, err := createSolveWorkers(numCPUs)
+	if err != nil {
+		return nil, err
+	}
+
+	workers.Start(taskChannel, resultChannel, errorChannel, &wg)
+	go ErrorHandler(errorChannel)
+
+	// create the first and only board
+	tsk := solver.Task{Board: board,
+		Solver: s}
+	taskChannel <- tsk
+
+	// wait for a solution to arrive on the resultChannel
+	solution := <-resultChannel
+
+	close(taskChannel)  // This tells the goroutines there's nothing else to do
+	wg.Wait()           // Wait for the goroutines to finish
+	close(errorChannel) // close the error channel
+
+	return solution, nil
+}
+
+// createSolveWorkers create the task.Workers that will process Tasks
+// by solving the puzzle
+func createSolveWorkers(numCPUs int) (task.Workers, error) {
+	result := make(task.Workers, numCPUs)
+
+	for i := 0; i < numCPUs; i++ {
+		name := fmt.Sprintf("Worker-%02d", i)
+		result[i] = &SolveWorker{Name: name}
+	}
+
+	return result, nil
+}
+
+// Start the given task worker of tasks and when done signal completed on the given wait group
+func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result, errors chan error, wg *sync.WaitGroup) {
+	for {
+		// read from the tasks channel
+		tsk, ok := <-tasks
+
+		// test if the channel has been closed
+		if !ok {
+			worker.Stop()
+			wg.Done()
+			return
+		}
+
+		// get the concrete task
+		t := tsk.(solver.Task)
+
+		// use the Solver to solve the Board in the task
+		// results in a []Boards
+		bs, rs, err := t.Solver.Solve(t.Board)
+		if err != nil {
+			// log the reason that the board could not be solved
+			err = fmt.Errorf("%s: failed solving: %s", worker.Name, err)
+			errors <- err
+		}
+
+		// put the results returned from the solver on the results queue
+		for _, r := range rs {
+			results <- r
+		}
+
+		// put the boards returned from the solver on the task queue
+		for _, board := range bs {
+			tsk := solver.Task{Board: board,
+				Solver: t.Solver}
+
+			tasks <- tsk
+		}
+	}
+}
+
+// Stop the SolverWorker signal wait group that we are done
+func (worker *SolveWorker) Stop() {
+	log.Printf("Stopped worker %s\n", worker.Name)
+}

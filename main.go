@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	"log"
 	"question20/puzzle"
 	"question20/solver"
 	"question20/solver/worker"
@@ -11,42 +11,56 @@ import (
 var _ solver.Solver = puzzle.Question20Solver{}
 
 func main() {
-	board := puzzle.NewBoard()
+	p := puzzle.NewPuzzle()
 	s := puzzle.Question20Solver{}
-	result, err := worker.Solve(board, s)
+	result, err := worker.Solve(p, s)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
-	solution := result.(puzzle.Board)
+	solution := result.(puzzle.Puzzle)
 	fmt.Printf("Solution is: %d", solution)
 
-	//dice := puzzle.NewDice()
-	//
-	//fmt.Printf("Dice is\n%s", dice)
-	//
-	//clone := dice.Clone()
-	//
-	//fmt.Printf("Clone is \n%s", clone)
-	//
-	//dice = puzzle.NewDice()
-	//dice.RollNorth()
-	//
-	//fmt.Printf("Dice after North is \n%s", dice)
-	//
-	//dice = puzzle.NewDice()
-	//dice.RollEast()
-	//
-	//fmt.Printf("Dice after East is \n%s", dice)
-	//
-	//dice = puzzle.NewDice()
-	//dice.RollSouth()
-	//
-	//fmt.Printf("Dice after South is \n%s", dice)
-	//
-	//dice = puzzle.NewDice()
-	//dice.RollWest()
-	//
-	//fmt.Printf("Dice after West is \n%s", dice)
+	// dice := puzzle.NewDice()
+
+	// fmt.Printf("Dice is\n%s", dice)
+
+	// // clone := dice.Clone()
+
+	// // fmt.Printf("Clone is \n%s", clone)
+
+	// dice = puzzle.NewDice()
+	// dice = dice.Roll(puzzle.DirectionNorth)
+
+	// fmt.Printf("Dice after North is \n%s", dice)
+
+	// dice = puzzle.NewDice()
+	// dice = dice.Roll(puzzle.DirectionEast)
+
+	// fmt.Printf("Dice after East is \n%s", dice)
+
+	// dice = puzzle.NewDice()
+	// dice = dice.Roll(puzzle.DirectionSouth)
+
+	// fmt.Printf("Dice after South is \n%s", dice)
+
+	// dice = puzzle.NewDice()
+	// dice = dice.Roll(puzzle.DirectionWest)
+
+	// fmt.Printf("Dice after West is \n%s", dice)
+
+	// p := puzzle.NewPuzzle()
+
+	// fmt.Printf("Puzzle is\n%s", p)
+
+	// solver := puzzle.Question20Solver{}
+
+	// ps, _, _ := solver.Solve(p)
+
+	// fmt.Printf("New Puzzles \n")
+
+	// for _, puz := range ps {
+	// 	fmt.Printf("%s\n", puz)
+	// }
 
 }

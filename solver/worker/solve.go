@@ -5,6 +5,7 @@ import (
 	"question20/puzzle"
 	"question20/solver"
 	"question20/task"
+	"runtime"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -19,12 +20,12 @@ type SolveWorker struct {
 }
 
 // Solve creates SolveWorkers and initiates the solving process
-func Solve(board puzzle.Board, s solver.Solver) (task.Result, error) {
+func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
 
-	// numCPUs := runtime.NumCPU()
-	numCPUs := 1
+	numCPUs := runtime.NumCPU()
+	//numCPUs := 1
 	// channel on which tasks can be submitted (Larger than the number of Workers)
-	taskChannel := make(chan task.Task, numCPUs+10)
+	taskChannel := make(chan task.Task, numCPUs*1000000)
 	// channel on which errors can be submitted
 	errorChannel := make(chan error, numCPUs+10)
 	// channel on which the solved Board is received
@@ -42,8 +43,8 @@ func Solve(board puzzle.Board, s solver.Solver) (task.Result, error) {
 	workers.Start(taskChannel, resultChannel, errorChannel, &wg)
 	go ErrorHandler(errorChannel)
 
-	// create the first and only board
-	tsk := solver.Task{Board: board,
+	// create the first and only puzzle
+	tsk := solver.Task{Puzzle: puzzle,
 		Solver: s}
 	taskChannel <- tsk
 
@@ -86,9 +87,9 @@ func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result,
 		// get the concrete task
 		t := tsk.(solver.Task)
 
-		// use the Solver to solve the Board in the task
-		// results in a []Boards
-		bs, rs, err := t.Solver.Solve(t.Board)
+		// use the Solver to solve the puzzle in the task
+		// results in a []Puzzle
+		ps, rs, err := t.Solver.Solve(t.Puzzle)
 		if err != nil {
 			// log the reason that the board could not be solved
 			err = fmt.Errorf("%s: failed solving: %s", worker.Name, err)
@@ -100,13 +101,16 @@ func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result,
 			results <- r
 		}
 
-		// put the boards returned from the solver on the task queue
-		for _, board := range bs {
-			tsk := solver.Task{Board: board,
+		// put the puzzles returned from the solver on the task queue
+		for _, puzzle := range ps {
+			tsk := solver.Task{Puzzle: puzzle,
 				Solver: t.Solver}
 
 			tasks <- tsk
 		}
+
+		// log the current size of the task queue
+		log.Infof("Current number of tasks: %d", len(tasks))
 	}
 }
 

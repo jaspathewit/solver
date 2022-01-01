@@ -7,13 +7,13 @@ import (
 // TimestampDateFormat date format corresponding to "yyyymmddhhmmss000"
 // const TimestampDateFormat = "20060102150405000"
 
-// Solver interface implemented by Solvers that contain entities that can be dumped (files, zip, export or activeMQ)
+// Solver interface implemented by Solvers that solve a puzzle
 type Solver interface {
-	Solve(board puzzle.Board) (puzzle.Boards, puzzle.Boards, error)
+	Solve(puzzle puzzle.Puzzle) (puzzle.Puzzles, puzzle.Puzzles, error)
 }
 
 // Task contains the data needed to solve an entity
 type Task struct {
-	Board  puzzle.Board
+	Puzzle puzzle.Puzzle
 	Solver Solver
 }

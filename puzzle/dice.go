@@ -5,15 +5,20 @@ import (
 	"fmt"
 )
 
+// Dice representation of a Dice
 type Dice struct {
-	Top    int
-	North  int
-	East   int
-	South  int
-	West   int
-	Bottom int
+	Top    int8
+	North  int8
+	East   int8
+	South  int8
+	West   int8
+	Bottom int8
+
+	Row int8
+	Col int8
 }
 
+// NewDice construct a new dice
 func NewDice() Dice {
 	result := Dice{
 		Top:    6,
@@ -31,7 +36,6 @@ func NewDice() Dice {
 // WTE
 //  S
 // ┌└┘┐│─
-
 func (d Dice) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("┌──%d──┐\n", d.North))
@@ -41,28 +45,27 @@ func (d Dice) String() string {
 	return buffer.String()
 }
 
-// Clone clones a dice creating and returning a new dice
-func (d Dice) Clone() Dice {
-	result := d
-	return result
-}
+// // Clone clones a dice creating and returning a new dice
+// func (d Dice) Clone() Dice {
+// 	result := d
+// 	return result
+// }
 
-// RollNorth
-func (d *Dice) RollNorth() {
-	d.South, d.Top, d.North, d.Bottom = d.Bottom, d.South, d.Top, d.North
-}
-
-// RollEast
-func (d *Dice) RollEast() {
-	d.East, d.Top, d.West, d.Bottom = d.Top, d.West, d.Bottom, d.East
-}
-
-// RollSouth
-func (d *Dice) RollSouth() {
-	d.South, d.Top, d.North, d.Bottom = d.Top, d.North, d.Bottom, d.South
-}
-
-// RollWest
-func (d *Dice) RollWest() {
-	d.West, d.Top, d.East, d.Bottom = d.Top, d.East, d.Bottom, d.West
+// Roll rolls the dice in the given direction
+func (d Dice) Roll(direction Direction) Dice {
+	switch direction {
+	case DirectionNorth:
+		d.South, d.Top, d.North, d.Bottom = d.Bottom, d.South, d.Top, d.North
+		d.Row -= 1
+	case DirectionEast:
+		d.East, d.Top, d.West, d.Bottom = d.Top, d.West, d.Bottom, d.East
+		d.Col += 1
+	case DirectionSouth:
+		d.South, d.Top, d.North, d.Bottom = d.Top, d.North, d.Bottom, d.South
+		d.Row += 1
+	case DirectionWest:
+		d.West, d.Top, d.East, d.Bottom = d.Top, d.East, d.Bottom, d.West
+		d.Col -= 1
+	}
+	return d
 }

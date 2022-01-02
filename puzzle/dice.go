@@ -52,6 +52,7 @@ func (d Dice) String() string {
 // }
 
 // Roll rolls the dice in the given direction
+// alters the faces and the dices location in the puzzle
 func (d Dice) Roll(direction Direction) Dice {
 	switch direction {
 	case DirectionNorth:

@@ -1,11 +1,15 @@
 package puzzle
 
-import "bytes"
+import (
+	"bytes"
+	"log"
+)
 
 type Puzzles []Puzzle
 
 type Puzzle struct {
-	Board []Cells
+	Board  []Cells
+	Labels Labels
 
 	Dice Dice
 }
@@ -86,8 +90,13 @@ func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
 	c.Dice = dice
 	c.Board[c.Dice.Row][c.Dice.Col].Value = c.Dice.Top
 
-	// check if the after the roll of the dice is valid
+	// check if the after the roll of the dice the puzzel is still valid
 	if !c.Valid() {
+		return Puzzle{}, false
+	}
+
+	// check if after the roll of the dice the puzzel is still solvable
+	if c.Partitioned() {
 		return Puzzle{}, false
 	}
 
@@ -155,7 +164,6 @@ func (p Puzzle) noZeroCells() bool {
 // .0...0.
 // ..0.0..
 // .......
-
 func (p Puzzle) Valid() bool {
 	value := p.Board[p.Dice.Row][p.Dice.Col]
 
@@ -192,4 +200,65 @@ func (p Puzzle) Valid() bool {
 	}
 
 	return true
+}
+
+// Partitioned determins if all the unassigned cells are still all four way connected
+func (p Puzzle) Partitioned() bool {
+	// create the labels for the cells and add them to the puzzle
+	p.Labels = NewLabels(len(p.Board))
+	defer func() { p.Labels = nil }()
+
+	currentLabel := int8(0)
+	// apply the ccl algorithum
+	for row := range p.Board {
+		for col := range p.Board[row] {
+			// check if this cell is not labeled and does not have a value
+			if p.Labels[row][col] == 0 && p.Board[row][col].Value == 0 {
+				// add one to the current label
+				currentLabel += 1
+
+				// // check if we have found a new partition
+				// if currentLabel >= 2 {
+
+				// 	return true
+				// }
+
+				p.dfs(row, col, currentLabel)
+
+			}
+		}
+	}
+
+	if currentLabel >= 3 {
+		log.Printf("Puzzle is partitioned\n%s", p.Labels.String())
+		log.Printf("Puzzle\n%s", p.String())
+		return true
+	}
+
+	return false
+}
+
+// dfs perform depth first search on the puzzle
+func (p Puzzle) dfs(row int, col int, currentLabel int8) {
+	size := len(p.Board)
+	if row < 0 || row == size {
+		return // out of bounds
+	}
+
+	if col < 0 || col == size {
+		return // out of bounds
+	}
+
+	if p.Labels[row][col] != 0 || p.Board[col][row].Value != 0 {
+		return // already labeled or not marked with 0 in m
+	}
+
+	// mark the current cell
+	p.Labels[row][col] = currentLabel
+
+	// recursively mark the 4 neighbors
+	p.dfs(row-1, col, currentLabel)
+	p.dfs(row, col+1, currentLabel)
+	p.dfs(row+1, col, currentLabel)
+	p.dfs(row, col-1, currentLabel)
 }

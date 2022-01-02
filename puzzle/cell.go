@@ -12,11 +12,11 @@ type Cells []Cell
 type Direction int8
 
 const (
-	DirectionUndefined = Direction(0)
-	DirectionNorth     = Direction(1)
-	DirectionEast      = Direction(2)
-	DirectionSouth     = Direction(3)
-	DirectionWest      = Direction(4)
+	// DirectionUndefined = Direction(0)
+	DirectionNorth = Direction(1)
+	DirectionEast  = Direction(2)
+	DirectionSouth = Direction(3)
+	DirectionWest  = Direction(4)
 )
 
 // Cell a location on the board
@@ -25,11 +25,11 @@ type Cell struct {
 	Direction Direction
 }
 
-func NewCell(value int8, direction Direction) Cell {
-	result := Cell{Value: value,
-		Direction: direction}
-	return result
-}
+//func NewCell(value int8, direction Direction) Cell {
+//	result := Cell{Value: value,
+//		Direction: direction}
+//	return result
+//}
 
 // String representation of the slice of cells
 func (cells Cells) String() string {

@@ -1,8 +1,6 @@
 package worker
 
-import (
-	log "github.com/sirupsen/logrus"
-)
+import "log"
 
 // ErrorHandler Handles the errors sent on an error channel
 // when the error channel is closed it sends the total number
@@ -18,6 +16,6 @@ func ErrorHandler(errors chan error) {
 			return
 		}
 
-		log.Error(err)
+		log.Print(err)
 	}
 }

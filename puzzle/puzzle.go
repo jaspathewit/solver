@@ -75,10 +75,10 @@ func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
 	// record that the dice is moving in the given direction from the current cell
 	c.Board[c.Dice.Row][c.Dice.Col].Direction = direction
 
-	// roll the dice in the tha direction
+	// roll the dice in the that direction
 	dice := c.Dice.Roll(direction)
 
-	// check if the roll was valid direction
+	// check if the roll was valid direction (
 	if c.Board[dice.Row][dice.Col].Value != 0 {
 		return Puzzle{}, false
 	}
@@ -86,15 +86,19 @@ func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
 	c.Dice = dice
 	c.Board[c.Dice.Row][c.Dice.Col].Value = c.Dice.Top
 
+	// check if the after the roll of the dice is valid
+	if !c.Valid() {
+		return Puzzle{}, false
+	}
+
 	return c, true
 }
 
-// IsSolved checks if the given puzzle is solved
-func (p Puzzle) IsSolved() bool {
+// Solved checks if the given puzzle is solved
+func (p Puzzle) Solved() bool {
 	result := p.isDiceLocationCorrect() && p.noZeroCells()
 
 	return result
-
 }
 
 // isDiceLocation checks if the dice is in one of the correct locations
@@ -135,6 +139,56 @@ func (p Puzzle) noZeroCells() bool {
 				return false
 			}
 		}
+	}
+
+	return true
+}
+
+// Valid checks if the given puzzle is valid
+// the current value of the cell containing the dice
+// must not be the same as any cell reachable from current
+// dice location via the knights move
+// .......
+// ..0.0..
+// .0...0.
+// ...X...
+// .0...0.
+// ..0.0..
+// .......
+
+func (p Puzzle) Valid() bool {
+	value := p.Board[p.Dice.Row][p.Dice.Col]
+
+	if value == p.Board[p.Dice.Row-2][p.Dice.Col-1] {
+		return false
+	}
+
+	if value == p.Board[p.Dice.Row-2][p.Dice.Col+1] {
+		return false
+	}
+
+	if value == p.Board[p.Dice.Row-1][p.Dice.Col+2] {
+		return false
+	}
+
+	if value == p.Board[p.Dice.Row+1][p.Dice.Col+2] {
+		return false
+	}
+
+	if value == p.Board[p.Dice.Row+2][p.Dice.Col+1] {
+		return false
+	}
+
+	if value == p.Board[p.Dice.Row+2][p.Dice.Col-1] {
+		return false
+	}
+
+	if value == p.Board[p.Dice.Row+1][p.Dice.Col-2] {
+		return false
+	}
+
+	if value == p.Board[p.Dice.Row-1][p.Dice.Col-2] {
+		return false
 	}
 
 	return true

@@ -19,11 +19,13 @@ func (q Question20Solver) Solve(puzzle Puzzle) (Puzzles, Puzzles, error) {
 	}
 
 	// did we solve the puzzle ?
-	if puzzle.IsSolved() {
+	if puzzle.Solved() {
 		ps = append(ps, puzzle)
 		return nil, ps, nil
 	}
 
-	// we could not move and the pzzle is not solved
+	// we could not move and the puzzle is not solved
+	//log.Printf("Could not move not solved")
+	//log.Printf("%s", puzzle)
 	return nil, nil, nil
 }

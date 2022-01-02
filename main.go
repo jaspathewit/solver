@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"question20/puzzle"
 	"question20/solver"
 	"question20/solver/worker"
@@ -11,6 +12,14 @@ import (
 var _ solver.Solver = puzzle.Question20Solver{}
 
 func main() {
+	// set up the log to file
+	// If the file doesn't exist, create it or append to the file
+	file, err := os.OpenFile("question20.log", os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.SetOutput(file)
+
 	p := puzzle.NewPuzzle()
 	s := puzzle.Question20Solver{}
 	result, err := worker.Solve(p, s)

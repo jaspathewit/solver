@@ -2,13 +2,12 @@ package worker
 
 import (
 	"fmt"
+	"log"
 	"question20/puzzle"
 	"question20/solver"
 	"question20/task"
 	"runtime"
 	"sync"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // SolveWorker concrete task.Worker implementation that solves puzzle
@@ -25,7 +24,7 @@ func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
 	numCPUs := runtime.NumCPU()
 	//numCPUs := 1
 	// channel on which tasks can be submitted (Larger than the number of Workers)
-	taskChannel := make(chan task.Task, numCPUs*1000000)
+	taskChannel := make(chan task.Task, numCPUs*10000000)
 	// channel on which errors can be submitted
 	errorChannel := make(chan error, numCPUs+10)
 	// channel on which the solved Board is received
@@ -102,15 +101,19 @@ func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result,
 		}
 
 		// put the puzzles returned from the solver on the task queue
-		for _, puzzle := range ps {
-			tsk := solver.Task{Puzzle: puzzle,
+		for _, p := range ps {
+			tsk := solver.Task{Puzzle: p,
 				Solver: t.Solver}
 
 			tasks <- tsk
-		}
 
-		// log the current size of the task queue
-		log.Infof("Current number of tasks: %d", len(tasks))
+			// log the current size of the task queue
+			noTasks := len(tasks)
+			if (noTasks % 100000) == 0 {
+				log.Printf("Current number of tasks: %d\n", noTasks)
+				log.Printf("Last Puzzle added\n%s", p)
+			}
+		}
 	}
 }
 

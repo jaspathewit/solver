@@ -13,7 +13,10 @@ type Puzzle struct {
 	Dice Dice
 }
 
-// NewPuzzel constructs a new puzzle.Puzzle
+// NewPuzzle constructs a new puzzle.Puzzle
+// an "array" of 12 by 12 is used with the actual
+// board running from 2:10 this simplifies checking
+// for values in the knight move locations
 func NewPuzzle() Puzzle {
 	result := Puzzle{}
 	result.Dice = NewDice()
@@ -37,18 +40,24 @@ func NewPuzzle() Puzzle {
 		}
 	}
 
+	// record the first cell value from the top face of the dice
 	result.Board[result.Dice.Row][result.Dice.Col].Value = result.Dice.Top
 
 	return result
 }
 
 // Clone constructs a clone of the puzzle.Puzzle
+// we need to clone the puzzle because copies of the
+// puzzle will have the same slices for the board
+// Labels is not cloned that is only added to the puzzle
+// during the CCL algorithum
 func (p Puzzle) Clone() Puzzle {
 
 	result := NewPuzzle()
 	// clone the dice
 	result.Dice = p.Dice
 
+	// fast copy for slices
 	for row := range result.Board {
 		copy(result.Board[row], p.Board[row])
 	}
@@ -78,10 +87,10 @@ func (p Puzzle) Total() int64 {
 	return result
 }
 
-// Move "moves" the puzzle in the given direction
+// Move "moves" the dice in a puzzle in the given direction
 // returns the puzzle representation after rolling the dice
 // in the direction given, and ok if the Move in the the
-// given direction is possible.
+// given direction was "possible".
 func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
 	// take a clone of the given Puzzle
 	c := p.Clone()
@@ -92,20 +101,26 @@ func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
 	// roll the dice in the that direction
 	dice := c.Dice.Roll(direction)
 
-	// check if the roll was valid direction (
+	// check if the roll was valid direction
+	// there was no value other than 0 recorded in the cell being moved to
 	if c.Board[dice.Row][dice.Col].Value != 0 {
 		return Puzzle{}, false
 	}
 
+	// record the current dice after the roll
 	c.Dice = dice
+	// record the value of the face of the dice
 	c.Board[c.Dice.Row][c.Dice.Col].Value = c.Dice.Top
 
 	// check if the after the roll of the dice the puzzle is still valid
+	// Knights move constraint has not been violated
 	if !c.Valid() {
 		return Puzzle{}, false
 	}
 
 	// check if after the roll of the dice the puzzle is still solvable
+	// the puzzle has not become partitioned (2 or more areas of 0) that
+	// cannot be reached by roling the dice
 	if c.Partitioned() {
 		return Puzzle{}, false
 	}
@@ -114,6 +129,8 @@ func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
 }
 
 // Solved checks if the given puzzle is solved
+// Dice has ended in a position a knights move away from the
+// starting position and all cells have been visited
 func (p Puzzle) Solved() bool {
 	result := p.isDiceLocationCorrect() && p.noZeroCells()
 
@@ -151,10 +168,9 @@ func (p Puzzle) isDiceLocationCorrect() bool {
 
 // noZeroCells checks if there are any zero valued cells
 func (p Puzzle) noZeroCells() bool {
-	size := len(p.Board)
-	for row := 0; row < size; row++ {
-		for col := 0; col < size; col++ {
-			if p.Board[row][col].Value == 0 {
+	for _, row := range p.Board[2:10] {
+		for _, cell := range row[2:10]  {
+			if cell.Value == 0 {
 				return false
 			}
 		}
@@ -212,16 +228,20 @@ func (p Puzzle) Valid() bool {
 	return true
 }
 
-// Partitioned determins if all the unassigned cells are still all four way connected
+// Partitioned determines if all the unassigned cells are still all four way connected
 func (p Puzzle) Partitioned() bool {
 	// create the labels for the cells and add them to the puzzle
 	p.Labels = NewLabels(len(p.Board))
+	// remove the Labels when we are done here
 	defer func() { p.Labels = nil }()
 
 	currentLabel := int8(0)
 	// apply the ccl algorithum
-	for row := range p.Board {
-		for col := range p.Board[row] {
+	// only loop through the actual cells
+	for rowI := range p.Board[2:10] {
+		row := rowI + 2
+		for colI := range p.Board[row][2:10] {
+			col := colI + 2
 			// check if this cell is not labeled and does not have a value
 			if p.Labels[row][col] == 0 && p.Board[row][col].Value == 0 {
 				// add one to the current label
@@ -232,35 +252,20 @@ func (p Puzzle) Partitioned() bool {
 					return true
 				}
 
+				// perform the Depth First Search
 				p.dfs(row, col, currentLabel)
 			}
 		}
 	}
-
-	//if currentLabel >= 2 {
-	//	log.Printf("Puzzle is partitioned\n%s", p.Labels.String())
-	//	log.Printf("Puzzle\n%s", p.String())
-	//	return true
-	//}
 
 	return false
 }
 
 // dfs perform depth first search on the puzzle
 func (p Puzzle) dfs(row int, col int, currentLabel int8) {
-	size := len(p.Board)
-	// check if we are move outside the bounds of the board
-	if row < 0 || row == size {
-		return // out of bounds
-	}
-
-	if col < 0 || col == size {
-		return // out of bounds
-	}
-
-	// Check that the cell under consideration is labeled or not visited yet
-	if p.Labels[row][col] != 0 || p.Board[row][col].Value != 0 {
-		return // already labeled or not marked with 0 in m
+	// check if Cell is not interesting or already labeled
+	if p.Board[row][col].Value != 0 || p.Labels[row][col] != 0 {
+		return
 	}
 
 	// mark the current cell

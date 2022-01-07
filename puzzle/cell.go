@@ -12,7 +12,6 @@ type Cells []Cell
 type Direction int8
 
 const (
-	// DirectionUndefined = Direction(0)
 	DirectionNorth = Direction(1)
 	DirectionEast  = Direction(2)
 	DirectionSouth = Direction(3)
@@ -24,12 +23,6 @@ type Cell struct {
 	Value     int8
 	Direction Direction
 }
-
-//func NewCell(value int8, direction Direction) Cell {
-//	result := Cell{Value: value,
-//		Direction: direction}
-//	return result
-//}
 
 // String representation of the slice of cells
 func (cells Cells) String() string {
@@ -55,7 +48,7 @@ func (cells Cells) String() string {
 }
 
 //│─
-// stringTop returns a string replesentation of the the top of the Cell
+// stringTop returns a string representation of the the top of the Cell
 func (c Cell) stringTop() string {
 	var buffer bytes.Buffer
 
@@ -70,7 +63,7 @@ func (c Cell) stringTop() string {
 	return buffer.String()
 }
 
-// stringMiddle returns a string replesentation of the the middle of the Cell
+// stringMiddle returns a string representation of the the middle of the Cell
 func (c Cell) stringMiddle() string {
 	var buffer bytes.Buffer
 
@@ -91,7 +84,7 @@ func (c Cell) stringMiddle() string {
 	return buffer.String()
 }
 
-// stringBottom returns a string replesentation of the bottom of the Cell
+// stringBottom returns a string representation of the bottom of the Cell
 func (c Cell) stringBottom() string {
 	var buffer bytes.Buffer
 

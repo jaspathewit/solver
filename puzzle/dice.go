@@ -45,14 +45,9 @@ func (d Dice) String() string {
 	return buffer.String()
 }
 
-// // Clone clones a dice creating and returning a new dice
-// func (d Dice) Clone() Dice {
-// 	result := d
-// 	return result
-// }
-
 // Roll rolls the dice in the given direction
 // alters the faces and the dices location in the puzzle
+// corresponding to the direction of the role
 func (d Dice) Roll(direction Direction) Dice {
 	switch direction {
 	case DirectionNorth:

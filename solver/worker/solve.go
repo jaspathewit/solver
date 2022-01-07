@@ -10,12 +10,9 @@ import (
 	"sync"
 )
 
-// SolveWorker concrete task.Worker implementation that solves puzzle
+// SolveWorker concrete task.Worker implementation that solves puzzles
 type SolveWorker struct {
 	Name string
-	//OutputPath string
-	//Prefix     string
-	//ByDate     bool
 }
 
 // Solve creates SolveWorkers and initiates the solving process
@@ -29,6 +26,8 @@ func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
 	errorChannel := make(chan error, numCPUs+10)
 	// channel on which the solved Board is received
 	resultChannel := make(chan task.Result, 1)
+	// channel to control the workers
+	stopChannel := make(chan task.Signal, 1)
 	defer close(resultChannel)
 
 	// wait group which all workers will notify when done
@@ -39,7 +38,7 @@ func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
 		return nil, err
 	}
 
-	workers.Start(taskChannel, resultChannel, errorChannel, &wg)
+	workers.Start(taskChannel, resultChannel, errorChannel, stopChannel, &wg)
 	go ErrorHandler(errorChannel)
 
 	// create the first and only puzzle
@@ -50,8 +49,9 @@ func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
 	// wait for a solution to arrive on the resultChannel
 	solution := <-resultChannel
 
-	close(taskChannel)  // This tells the goroutines there's nothing else to do
+	close(stopChannel)  // This tells the goroutines there's nothing else to do, we have a solution
 	wg.Wait()           // Wait for the goroutines to finish
+	close(taskChannel) // close the task channel
 	close(errorChannel) // close the error channel
 
 	return solution, nil
@@ -71,20 +71,19 @@ func createSolveWorkers(numCPUs int) (task.Workers, error) {
 }
 
 // Start the given task worker of tasks and when done signal completed on the given wait group
-func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result, errors chan error, wg *sync.WaitGroup) {
+func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result, errors chan error, stopChannel chan task.Signal, wg *sync.WaitGroup) {
 	for {
 		// read from the tasks channel
-		tsk, ok := <-tasks
-
-		// test if the channel has been closed
-		if !ok {
+		var t solver.Task
+		select {
+		case tsk := <-tasks:
+			// get the concrete task
+			t = tsk.(solver.Task)
+		case <-stopChannel: // check if we are stopped
 			worker.Stop()
 			wg.Done()
 			return
 		}
-
-		// get the concrete task
-		t := tsk.(solver.Task)
 
 		// use the Solver to solve the puzzle in the task
 		// results in a []Puzzle
@@ -109,7 +108,7 @@ func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result,
 
 			// log the current size of the task queue
 			noTasks := len(tasks)
-			if (noTasks % 100000) == 0 {
+			if (noTasks % 10000) == 0 {
 				log.Printf("Current number of tasks: %d\n", noTasks)
 				log.Printf("Last Puzzle added\n%s", p)
 			}

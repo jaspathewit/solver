@@ -9,7 +9,7 @@ type Workers []Worker
 
 // Worker type that will process a channel of tasks
 type Worker interface {
-	Start(tasks chan Task, results chan Result, errors chan error, wg *sync.WaitGroup)
+	Start(tasks chan Task, results chan Result, errors chan error, stopChannel chan Signal, wg *sync.WaitGroup)
 	Stop()
 }
 
@@ -22,11 +22,14 @@ type Task interface {
 type Result interface {
 }
 
+// Signal used by signal channels
+type Signal struct {}
+
 //Start starts a number of workers processing a channel of tasks submitted on the given task channel
-func (workers Workers) Start(tasks chan Task, results chan Result, errors chan error, wg *sync.WaitGroup) {
+func (workers Workers) Start(tasks chan Task, results chan Result, errors chan error, stopChannel chan Signal, wg *sync.WaitGroup) {
 	for _, w := range workers {
 		// add one to the wait group
 		wg.Add(1)
-		go w.Start(tasks, results, errors, wg)
+		go w.Start(tasks, results, errors, stopChannel, wg)
 	}
 }

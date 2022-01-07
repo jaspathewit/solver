@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// Labels 2d of label
+// Labels 2d "array" of label
 type Labels [][]int8
 
 func NewLabels(size int) Labels {

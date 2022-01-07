@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"question20/puzzle"
 	"question20/solver"
 	"question20/solver/worker"
@@ -14,11 +13,11 @@ var _ solver.Solver = puzzle.Question20Solver{}
 func main() {
 	// set up the log to file
 	// If the file doesn't exist, create it or append to the file
-	file, err := os.OpenFile("question20.log", os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.SetOutput(file)
+	//file, err := os.OpenFile("question20.log", os.O_CREATE|os.O_WRONLY, 0666)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//log.SetOutput(file)
 
 	p := puzzle.NewPuzzle()
 	s := puzzle.Question20Solver{}
@@ -28,7 +27,9 @@ func main() {
 	}
 
 	solution := result.(puzzle.Puzzle)
-	fmt.Printf("Solution is: %d", solution)
+	fmt.Printf("Solution is\n: %s", solution)
+
+	fmt.Printf("Total of all cells is: %d", solution.Total())
 
 	// dice := puzzle.NewDice()
 

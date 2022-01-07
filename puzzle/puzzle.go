@@ -2,7 +2,6 @@ package puzzle
 
 import (
 	"bytes"
-	"log"
 )
 
 type Puzzles []Puzzle
@@ -60,12 +59,23 @@ func (p Puzzle) Clone() Puzzle {
 // String representation of the Puzzle
 func (p Puzzle) String() string {
 	var buffer bytes.Buffer
-	for _, cells := range p.Board[2:10] {
-		buffer.WriteString(cells[2:10].String())
+	for _, row := range p.Board[2:10] {
+		buffer.WriteString(row[2:10].String())
 		buffer.WriteString("\n")
 	}
 
 	return buffer.String()
+}
+
+// Total the total of all the Cells in the Puzzle
+func (p Puzzle) Total() int64 {
+	var result int64
+	for _, row := range p.Board[2:10] {
+		for _, cell := range row[2:10] {
+			result += int64(cell.Value)
+		}
+	}
+	return result
 }
 
 // Move "moves" the puzzle in the given direction
@@ -90,12 +100,12 @@ func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
 	c.Dice = dice
 	c.Board[c.Dice.Row][c.Dice.Col].Value = c.Dice.Top
 
-	// check if the after the roll of the dice the puzzel is still valid
+	// check if the after the roll of the dice the puzzle is still valid
 	if !c.Valid() {
 		return Puzzle{}, false
 	}
 
-	// check if after the roll of the dice the puzzel is still solvable
+	// check if after the roll of the dice the puzzle is still solvable
 	if c.Partitioned() {
 		return Puzzle{}, false
 	}
@@ -165,37 +175,37 @@ func (p Puzzle) noZeroCells() bool {
 // ..0.0..
 // .......
 func (p Puzzle) Valid() bool {
-	value := p.Board[p.Dice.Row][p.Dice.Col]
+	value := p.Board[p.Dice.Row][p.Dice.Col].Value
 
-	if value == p.Board[p.Dice.Row-2][p.Dice.Col-1] {
+	if value == p.Board[p.Dice.Row-2][p.Dice.Col-1].Value {
 		return false
 	}
 
-	if value == p.Board[p.Dice.Row-2][p.Dice.Col+1] {
+	if value == p.Board[p.Dice.Row-2][p.Dice.Col+1].Value {
 		return false
 	}
 
-	if value == p.Board[p.Dice.Row-1][p.Dice.Col+2] {
+	if value == p.Board[p.Dice.Row-1][p.Dice.Col+2].Value {
 		return false
 	}
 
-	if value == p.Board[p.Dice.Row+1][p.Dice.Col+2] {
+	if value == p.Board[p.Dice.Row+1][p.Dice.Col+2].Value {
 		return false
 	}
 
-	if value == p.Board[p.Dice.Row+2][p.Dice.Col+1] {
+	if value == p.Board[p.Dice.Row+2][p.Dice.Col+1].Value {
 		return false
 	}
 
-	if value == p.Board[p.Dice.Row+2][p.Dice.Col-1] {
+	if value == p.Board[p.Dice.Row+2][p.Dice.Col-1].Value {
 		return false
 	}
 
-	if value == p.Board[p.Dice.Row+1][p.Dice.Col-2] {
+	if value == p.Board[p.Dice.Row+1][p.Dice.Col-2].Value {
 		return false
 	}
 
-	if value == p.Board[p.Dice.Row-1][p.Dice.Col-2] {
+	if value == p.Board[p.Dice.Row-1][p.Dice.Col-2].Value {
 		return false
 	}
 
@@ -217,23 +227,21 @@ func (p Puzzle) Partitioned() bool {
 				// add one to the current label
 				currentLabel += 1
 
-				// // check if we have found a new partition
-				// if currentLabel >= 2 {
-
-				// 	return true
-				// }
+				// check if we have found a new partition
+				if currentLabel >= 2 {
+					return true
+				}
 
 				p.dfs(row, col, currentLabel)
-
 			}
 		}
 	}
 
-	if currentLabel >= 3 {
-		log.Printf("Puzzle is partitioned\n%s", p.Labels.String())
-		log.Printf("Puzzle\n%s", p.String())
-		return true
-	}
+	//if currentLabel >= 2 {
+	//	log.Printf("Puzzle is partitioned\n%s", p.Labels.String())
+	//	log.Printf("Puzzle\n%s", p.String())
+	//	return true
+	//}
 
 	return false
 }
@@ -241,6 +249,7 @@ func (p Puzzle) Partitioned() bool {
 // dfs perform depth first search on the puzzle
 func (p Puzzle) dfs(row int, col int, currentLabel int8) {
 	size := len(p.Board)
+	// check if we are move outside the bounds of the board
 	if row < 0 || row == size {
 		return // out of bounds
 	}
@@ -249,7 +258,8 @@ func (p Puzzle) dfs(row int, col int, currentLabel int8) {
 		return // out of bounds
 	}
 
-	if p.Labels[row][col] != 0 || p.Board[col][row].Value != 0 {
+	// Check that the cell under consideration is labeled or not visited yet
+	if p.Labels[row][col] != 0 || p.Board[row][col].Value != 0 {
 		return // already labeled or not marked with 0 in m
 	}
 

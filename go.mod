@@ -1,3 +1,3 @@
-module question20
+module solver
 
 go 1.16

@@ -2,7 +2,7 @@ package sudoku
 
 import (
 	"log"
-	"question20/sudoku/puzzle"
+	"solver/sudoku/puzzle"
 )
 
 func main() {

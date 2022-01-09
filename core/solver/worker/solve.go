@@ -3,9 +3,8 @@ package worker
 import (
 	"fmt"
 	"log"
-	"question20/puzzle"
-	"question20/solver"
-	"question20/task"
+	"question20/core/solver"
+	"question20/core/task"
 	"runtime"
 	"sync"
 )
@@ -16,7 +15,7 @@ type SolveWorker struct {
 }
 
 // Solve creates SolveWorkers and initiates the solving process
-func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
+func Solve(puzzle solver.Puzzle, s solver.Solver) (task.Result, error) {
 
 	numCPUs := runtime.NumCPU()
 	//numCPUs := 1
@@ -41,7 +40,7 @@ func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
 	workers.Start(taskChannel, resultChannel, errorChannel, stopChannel, &wg)
 	go ErrorHandler(errorChannel)
 
-	// create the first and only puzzle
+	// create the first and only question20
 	tsk := solver.Task{Puzzle: puzzle,
 		Solver: s}
 	taskChannel <- tsk
@@ -58,7 +57,7 @@ func Solve(puzzle puzzle.Puzzle, s solver.Solver) (task.Result, error) {
 }
 
 // createSolveWorkers create the task.Workers that will process Tasks
-// by solving the puzzle
+// by solving the question20
 func createSolveWorkers(numCPUs int) (task.Workers, error) {
 	result := make(task.Workers, numCPUs)
 
@@ -85,7 +84,7 @@ func (worker *SolveWorker) Start(tasks chan task.Task, results chan task.Result,
 			return
 		}
 
-		// use the Solver to solve the puzzle in the task
+		// use the Solver to solve the question20 in the task
 		// results in a []Puzzle
 		ps, rs, err := t.Solver.Solve(t.Puzzle)
 		if err != nil {

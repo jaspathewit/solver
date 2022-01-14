@@ -2,10 +2,15 @@ package main
 
 import (
 	"log"
+	"solver/core/solver"
 	"solver/sudoku/puzzle"
 )
 
+var _ solver.Solver = puzzle.SudokuSolver{}
+
 func main() {
+
+
 	g, err := puzzelLibelle()
 	if err != nil {
 		log.Fatalf("failed to create grid for puzzel %s", err)

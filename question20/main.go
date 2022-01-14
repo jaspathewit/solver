@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	solver "question20/core/solver"
-	worker "question20/core/solver/worker"
-	"question20/question20/puzzle"
+	"solver/core/solver"
+	"solver/core/solver/worker"
+	"solver/question20/puzzle"
 	"time"
 )
 

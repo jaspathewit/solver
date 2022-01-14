@@ -3,9 +3,9 @@ package worker
 import (
 	"fmt"
 	"log"
-	"question20/core/solver"
-	"question20/core/task"
 	"runtime"
+	"solver/core/solver"
+	"solver/core/task"
 	"sync"
 )
 

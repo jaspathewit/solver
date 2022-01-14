@@ -2,7 +2,14 @@ package puzzle
 
 import (
 	"fmt"
+	"solver/core/solver"
 )
+
+// SudokuSolver as solver for Sudokus
+type SudokuSolver struct{}
+
+// Solve solves one step of a sudoku
+func (s SudokuSolver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzles, error) {
 
 // Solve solves a sudoku passed as a grid
 func Solve(g *Grid, depth int) (bool, error) {

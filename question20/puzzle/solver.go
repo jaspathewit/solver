@@ -1,6 +1,6 @@
 package puzzle
 
-import "question20/core/solver"
+import "solver/core/solver"
 
 // Question20Solver as solver for question 20
 type Question20Solver struct{}

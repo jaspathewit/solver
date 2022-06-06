@@ -1,8 +1,8 @@
 package solver
 
-// Solver interface implemented by Solvers that solve a question20
+// Solver interface implemented by Solvers that solve a puzzle
 type Solver interface {
-	Solve(puzzle Puzzle) (Puzzles, Puzzles, error)
+    Solve(puzzle Puzzle) (Puzzles, Puzzles, error)
 }
 
 // Puzzles slice of puzzles
@@ -14,6 +14,6 @@ type Puzzle interface {
 
 // Task contains the data needed to solve an entity
 type Task struct {
-	Puzzle Puzzle
-	Solver Solver
+    Puzzle Puzzle
+    Solver Solver
 }

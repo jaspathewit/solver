@@ -3,18 +3,22 @@ package main
 import (
 	"fmt"
 	"log"
-	solver "question20/core/solver"
-	worker "question20/core/solver/worker"
-	"question20/question20/puzzle"
+	"solver/core/solver"
+	"solver/core/solver/worker"
+	"solver/core/util"
+	"solver/question20/puzzle"
 	"time"
 )
 
 var _ solver.Solver = puzzle.Question20Solver{}
 
 func main() {
-	defer LogDuration(time.Now(), "question20")
+	defer util.LogDuration(time.Now(), "question20")
 	// create the starting question20
-	p := puzzle.NewPuzzle()
+	p, err := puzzle.NewPuzzle()
+	if err != nil {
+		log.Fatalf("could not create puzzle")
+	}
 	// create the solver for the question20
 	s := puzzle.Question20Solver{}
 	// start the worker.Solve with the starting question20 and the solver
@@ -24,15 +28,7 @@ func main() {
 	}
 
 	// get the concrete type of solution
-	solution := result.(puzzle.Puzzle)
+	solution := result.(*puzzle.Puzzle)
 	fmt.Printf("Solution is\n: %s", solution)
 	fmt.Printf("Total of all cells is: %d\n", solution.Total())
-}
-
-// LogDuration logs how long a method took to execute
-func LogDuration(start time.Time, name string) {
-	elapsed := time.Since(start)
-	if elapsed.Nanoseconds() != 0 {
-		log.Printf("%s took %s", name, elapsed)
-	}
 }

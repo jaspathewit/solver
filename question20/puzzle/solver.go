@@ -1,6 +1,6 @@
 package puzzle
 
-import "question20/core/solver"
+import "solver/core/solver"
 
 // Question20Solver as solver for question 20
 type Question20Solver struct{}
@@ -8,20 +8,21 @@ type Question20Solver struct{}
 // Solve solves one step of the question20
 func (q Question20Solver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzles, error) {
 	// get the concrete type of the puzzle
-	puz := puzzle.(Puzzle)
+	puz := puzzle.(*Puzzle)
 	ps := make(solver.Puzzles, 0, 4)
 
 	// see if we can move the dice in any of the four directions
 	for d := 1; d <= int(DirectionWest); d++ {
 		// try and move in that direction
-		p, ok := puz.Move(Direction(d))
+		p := puz.Clone()
+		ok := p.Move(Direction(d))
 		if ok {
 			// we were able to move in that direction
 			ps = append(ps, p)
 		}
 	}
 
-	// if wo moved in any of the 4 directions then the question20 is
+	// if we moved in any of the 4 directions then the question20 is
 	// not solved yet
 	if len(ps) != 0 {
 		return ps, nil, nil

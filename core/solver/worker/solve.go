@@ -3,9 +3,9 @@ package worker
 import (
 	"fmt"
 	"log"
-	"question20/core/solver"
-	"question20/core/task"
 	"runtime"
+	"solver/core/solver"
+	"solver/core/task"
 	"sync"
 )
 
@@ -50,7 +50,7 @@ func Solve(puzzle solver.Puzzle, s solver.Solver) (task.Result, error) {
 
 	close(stopChannel)  // This tells the goroutines there's nothing else to do, we have a solution
 	wg.Wait()           // Wait for the goroutines to finish
-	close(taskChannel) // close the task channel
+	close(taskChannel)  // close the task channel
 	close(errorChannel) // close the error channel
 
 	return solution, nil

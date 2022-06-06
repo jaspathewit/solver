@@ -2,6 +2,7 @@ package puzzle
 
 import (
 	"bytes"
+	"log"
 )
 
 type Puzzles []Puzzle
@@ -17,7 +18,7 @@ type Puzzle struct {
 // an "array" of 12 by 12 is used with the actual
 // board running from 2:10 this simplifies checking
 // for values in the knight move locations
-func NewPuzzle() Puzzle {
+func NewPuzzle() (*Puzzle, error) {
 	result := Puzzle{}
 	result.Dice = NewDice()
 
@@ -43,7 +44,7 @@ func NewPuzzle() Puzzle {
 	// record the first cell value from the top face of the dice
 	result.Board[result.Dice.Row][result.Dice.Col].Value = result.Dice.Top
 
-	return result
+	return &result, nil
 }
 
 // Clone constructs a clone of the question20.Puzzle
@@ -51,9 +52,12 @@ func NewPuzzle() Puzzle {
 // question20 will have the same slices for the board
 // Labels is not cloned that is only added to the question20
 // during the CCL algorithum
-func (p Puzzle) Clone() Puzzle {
+func (p Puzzle) Clone() *Puzzle {
 
-	result := NewPuzzle()
+	result, err := NewPuzzle()
+	if err != nil {
+		log.Panic("could not clone puzzle")
+	}
 	// clone the dice
 	result.Dice = p.Dice
 
@@ -89,43 +93,40 @@ func (p Puzzle) Total() int64 {
 
 // Move "moves" the dice in a question20 in the given direction
 // returns the question20 representation after rolling the dice
-// in the direction given, and ok if the Move in the the
+// in the direction given, and ok if the Move in the
 // given direction was "possible".
-func (p Puzzle) Move(direction Direction) (Puzzle, bool) {
-	// take a clone of the given Puzzle
-	c := p.Clone()
-
+func (p *Puzzle) Move(direction Direction) bool {
 	// record that the dice is moving in the given direction from the current cell
-	c.Board[c.Dice.Row][c.Dice.Col].Direction = direction
+	p.Board[p.Dice.Row][p.Dice.Col].Direction = direction
 
 	// roll the dice in the that direction
-	dice := c.Dice.Roll(direction)
+	dice := p.Dice.Roll(direction)
 
 	// check if the roll was valid direction
 	// there was no value other than 0 recorded in the cell being moved to
-	if c.Board[dice.Row][dice.Col].Value != 0 {
-		return Puzzle{}, false
+	if p.Board[dice.Row][dice.Col].Value != 0 {
+		return false
 	}
 
 	// record the current dice after the roll
-	c.Dice = dice
+	p.Dice = dice
 	// record the value of the face of the dice
-	c.Board[c.Dice.Row][c.Dice.Col].Value = c.Dice.Top
+	p.Board[p.Dice.Row][p.Dice.Col].Value = p.Dice.Top
 
 	// check if the after the roll of the dice the question20 is still valid
 	// Knights move constraint has not been violated
-	if !c.Valid() {
-		return Puzzle{}, false
+	if !p.Valid() {
+		return false
 	}
 
 	// check if after the roll of the dice the question20 is still solvable
 	// the question20 has not become partitioned (2 or more areas of 0) that
-	// cannot be reached by roling the dice
-	if c.Partitioned() {
-		return Puzzle{}, false
+	// cannot be reached by rolling the dice
+	if p.Partitioned() {
+		return false
 	}
 
-	return c, true
+	return true
 }
 
 // Solved checks if the given question20 is solved
@@ -169,7 +170,7 @@ func (p Puzzle) isDiceLocationCorrect() bool {
 // noZeroCells checks if there are any zero valued cells
 func (p Puzzle) noZeroCells() bool {
 	for _, row := range p.Board[2:10] {
-		for _, cell := range row[2:10]  {
+		for _, cell := range row[2:10] {
 			if cell.Value == 0 {
 				return false
 			}

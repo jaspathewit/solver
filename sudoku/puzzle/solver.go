@@ -2,17 +2,17 @@ package puzzle
 
 import (
 	"fmt"
+	"solver/core/solver"
 )
 
-// Solve solves a sudoku passed as a grid
-func Solve(g *Grid, depth int) (bool, error) {
+// SudokuSolver as solver for sudoku
+type SudokuSolver struct{}
 
-	fmt.Printf("Solving: %d\n", depth)
-	fmt.Printf("%s", g)
-
-	if depth > 500 {
-		return false, fmt.Errorf("recursion depth exceeded")
-	}
+// Solve solves one step of the Sedoku
+func (_ SudokuSolver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzles, error) {
+	// get the concrete type of the puzzle
+	puz := puzzle.(*Puzzle)
+	ps := make(solver.Puzzles, 0, 4)
 
 	//fmt.Printf("All Possibles:\n")
 	//for _, ref := range g.Cells {
@@ -21,7 +21,7 @@ func Solve(g *Grid, depth int) (bool, error) {
 	//}
 
 	// eliminate all possibles
-	for g.EliminatePossibles() {
+	for puz.EliminatePossibles() {
 	}
 
 	fmt.Printf("Possibles Eliminated:\n")
@@ -30,10 +30,10 @@ func Solve(g *Grid, depth int) (bool, error) {
 	//	fmt.Printf("Cell: %s\n", c)
 	//}
 
-	// get that all cells without a value have at least 2 possibles
-	if g.ImpossibleSolution() {
+	// check that all cells without a value have at least 2 possibles
+	if puz.ImpossibleSolution() {
 		fmt.Printf("Impossible Solution\n")
-		return false, nil
+		return nil, nil, nil
 	}
 
 	//fmt.Printf("Possibles Eliminated:\n")
@@ -42,41 +42,39 @@ func Solve(g *Grid, depth int) (bool, error) {
 	//	fmt.Printf("Cell: %s\n", c)
 	//}
 
-	// check if the grid is solved
-	if g.Solved() {
-		fmt.Printf("Solution Found\n%s", g)
-		return true, nil
+	// check if the puzzle is solved
+	if puz.Solved() {
+		ps = append(ps, puz)
+		return nil, ps, nil
 	}
 
 	// not solved yet
 	// get the reference to the cell with the fewest possibles
-	ref := g.GetRefWithFewestPossibles()
-	c, _ := g.Get(ref)
+	ref := puz.GetRefWithFewestPossibles()
+	c, _ := puz.Get(ref)
 
 	// get the possibles values for that cell
 	possibles := c.PossibleValues()
 
-	// loop through the possible values
+	// loop through all the possible values
 	for _, v := range possibles {
-		// clone the grid
-		gc, err := g.Clone()
-		if err != nil {
-			return false, err
-		}
+		// clone the puzzle
+		pc := puz.Clone()
 
 		// set the value on the cell
-		c, _ := gc.Get(ref)
+		c, _ := pc.Get(ref)
 		c.SetValue(v)
 
-		// solve this grid
-		fmt.Printf("Solving for %s as %s\n", ref, v)
-		solved, err := Solve(gc, depth+1)
-		if solved || err != nil {
-			return solved, err
-		}
+		// add this puzzle to those to be solved
+		ps = append(ps, pc)
 	}
 
-	// if we got to here then there is no solution
-	fmt.Printf("No Solution Found\n%s", g)
-	return false, nil
+	// if we have any puzzles to be solved
+	if len(ps) != 0 {
+		return ps, nil, nil
+	}
+
+	// if the sudoku is not solved
+	// no new puzzles, no solution and no errors
+	return nil, nil, nil
 }

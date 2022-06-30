@@ -1,21 +1,21 @@
-package task
+package worker
 
 import (
-	"sync"
+    "sync"
 )
 
 // Workers a slice of Worker
 type Workers []Worker
 
-// Worker type that will process a channel of tasks
+// Worker type that can be started and stopped
 type Worker interface {
-	Start(wg *sync.WaitGroup)
-	Stop()
+    Start(wg *sync.WaitGroup)
+    Stop()
 }
 
 // Task interface implemented by tasks that can be submitted to a task channel to
-// be executed by a number of worker routiens.
 type Task interface {
+    Process() (
 }
 
 // Result interface implemented by results that can be submitted to a result channel
@@ -27,9 +27,9 @@ type Signal struct{}
 
 //Start starts a number of workers processing a channel of tasks submitted on the given task channel
 func (workers Workers) Start(wg *sync.WaitGroup) {
-	for _, w := range workers {
-		// add one to the wait group
-		wg.Add(1)
-		go w.Start(wg)
-	}
+    for _, w := range workers {
+        // add one to the wait group
+        wg.Add(1)
+        go w.Start(wg)
+    }
 }

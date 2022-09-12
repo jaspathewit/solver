@@ -1,19 +1,14 @@
 package solver
 
-// Solver interface implemented by Solvers that solve a Puzzle
-type Solver interface {
-	Solve(puzzle Puzzle) (Puzzles, Puzzles, error)
-}
-
-// Puzzles slice of puzzles
-type Puzzles []Puzzle
+import "fmt"
 
 // Puzzle interface implemented by puzzles
 type Puzzle interface {
+	fmt.Stringer
 }
 
-// Task contains the data needed to solve an entity
-type Task struct {
-	Puzzle Puzzle
-	Solver Solver
+// Solver interface implemented by Solvers that solve a Puzzle
+// of type PT
+type Solver[PT Puzzle] interface {
+	Solve(puzzle PT) ([]PT, []PT, error)
 }

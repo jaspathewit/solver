@@ -2,11 +2,8 @@ package puzzle
 
 import (
 	"bytes"
-	"strconv"
+	"fmt"
 )
-
-// Cells a slice of cell
-type Cells []Cell
 
 // Direction of a cell (which direction did the dice go)
 type Direction int8
@@ -23,6 +20,9 @@ type Cell struct {
 	Value     int8
 	Direction Direction
 }
+
+// Cells a slice of cell
+type Cells []Cell
 
 // String representation of the slice of cells
 func (cells Cells) String() string {
@@ -47,54 +47,33 @@ func (cells Cells) String() string {
 	return buffer.String()
 }
 
-//│─
+// │─
 // stringTop returns a string representation of the the top of the Cell
 func (c Cell) stringTop() string {
-	var buffer bytes.Buffer
-
-	buffer.WriteString(" ")
 	if c.Direction == DirectionNorth {
-		buffer.WriteString("│")
-	} else {
-		buffer.WriteString(" ")
+		return " | "
 	}
-	buffer.WriteString(" ")
 
-	return buffer.String()
+	return "   "
 }
 
 // stringMiddle returns a string representation of the the middle of the Cell
 func (c Cell) stringMiddle() string {
-	var buffer bytes.Buffer
-
 	if c.Direction == DirectionWest {
-		buffer.WriteString("─")
-	} else {
-		buffer.WriteString(" ")
+		return fmt.Sprintf("─%d ", c.Value)
 	}
-
-	buffer.WriteString(strconv.Itoa(int(c.Value)))
 
 	if c.Direction == DirectionEast {
-		buffer.WriteString("─")
-	} else {
-		buffer.WriteString(" ")
+		return fmt.Sprintf(" %d─", c.Value)
 	}
 
-	return buffer.String()
+	return fmt.Sprintf(" %d ", c.Value)
 }
 
 // stringBottom returns a string representation of the bottom of the Cell
 func (c Cell) stringBottom() string {
-	var buffer bytes.Buffer
-
-	buffer.WriteString(" ")
 	if c.Direction == DirectionSouth {
-		buffer.WriteString("│")
-	} else {
-		buffer.WriteString(" ")
+		return " | "
 	}
-	buffer.WriteString(" ")
-
-	return buffer.String()
+	return "   "
 }

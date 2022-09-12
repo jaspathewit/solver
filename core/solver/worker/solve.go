@@ -5,100 +5,97 @@ import (
 	"log"
 	"runtime"
 	"solver/core/solver"
-	"solver/core/task"
 	"sync"
 )
 
-// SolveWorker concrete task.Worker implementation that solves puzzles
-type SolveWorker struct {
+// SolveWorker concrete Worker implementation that solves puzzles
+type SolveWorker[PT solver.Puzzle] struct {
 	Name          string
-	TaskChannel   chan solver.Task
-	ResultChannel chan task.Result
+	Solver        solver.Solver[PT]
+	PuzzleChannel chan PT
+	ResultChannel chan PT
 	ErrorChannel  chan error
-	StopChannel   chan task.Signal
+	StopChannel   chan Signal
 }
 
-// NewSolveWorker return the worker that will process the solver.Tasks and put the results on the resultChannel
-func NewSolveWorker(name string, taskChannel chan solver.Task, resultChannel chan task.Result, errorChannel chan error, stopChannel chan task.Signal) *SolveWorker {
-	return &SolveWorker{Name: name, TaskChannel: taskChannel, ResultChannel: resultChannel, ErrorChannel: errorChannel, StopChannel: stopChannel}
+// NewSolveWorker return the worker that will process the Puzzles and put the results on the resultChannel
+func NewSolveWorker[PT solver.Puzzle, ST solver.Solver[PT]](name string, solver ST, puzzleChannel chan PT, resultChannel chan PT, errorChannel chan error, stopChannel chan Signal) *SolveWorker[PT] {
+	return &SolveWorker[PT]{Name: name, Solver: solver, PuzzleChannel: puzzleChannel, ResultChannel: resultChannel, ErrorChannel: errorChannel, StopChannel: stopChannel}
 }
 
 // Solve creates SolveWorkers and initiates the solving process
-func Solve[PT solver.Puzzle, ST solver.Solver](p PT, s ST) (task.Result, error) {
-	// func Solve[PT puzzle.Puzzle, ST solver.Solver](p PT, s ST) (task.Result, error) {
+func Solve[PT solver.Puzzle](p PT, s solver.Solver[PT]) (PT, error) {
 	numCPUs := runtime.NumCPU()
 	//numCPUs := 1
-	// channel on which tasks can be submitted (Larger than the number of Workers)
-	taskChannel := make(chan solver.Task, numCPUs*10000000)
-	// channel on which the solved Board is received
-	resultChannel := make(chan task.Result, 1)
+	// channel on which puzzles can be submitted (Larger than the number of Workers)
+	puzzleChannel := make(chan PT, numCPUs*1000)
+	// channel on which the solved Puzzle is received
+	resultChannel := make(chan PT, 1)
 	// channel on which errors can be submitted
 	errorChannel := make(chan error, numCPUs+10)
 
 	// channel to control the workers
-	stopChannel := make(chan task.Signal, 1)
+	stopChannel := make(chan Signal, 1)
 	defer close(resultChannel)
 
 	// wait group which all workers will notify when done
 	var wg sync.WaitGroup
 
-	workers, err := createSolveWorkers(numCPUs, taskChannel, resultChannel, errorChannel, stopChannel)
+	workers, err := createSolveWorkers(numCPUs, s, puzzleChannel, resultChannel, errorChannel, stopChannel)
 	if err != nil {
-		return nil, err
+		var result PT
+		return result, err
 	}
 
 	workers.Start(&wg)
 	go ErrorHandler(errorChannel)
 
-	// create the task
-	tsk := solver.Task{Puzzle: p,
-		Solver: s}
-	taskChannel <- tsk
+	// put the puzzle on the channel
+	puzzleChannel <- p
 
-	// wait for a solution to arrive on the resultChannel
-	solution := <-resultChannel
+	// wait for a result to arrive on the resultChannel
+	result := <-resultChannel
 
-	close(stopChannel)  // This tells the goroutines there's nothing else to do, we have a solution
-	wg.Wait()           // Wait for the goroutines to finish
-	close(taskChannel)  // close the task channel
-	close(errorChannel) // close the error channel
+	close(stopChannel)   // This tells the goroutines there's nothing else to do, we have a solution
+	wg.Wait()            // Wait for the goroutines to finish
+	close(puzzleChannel) // close the puzzle channel
+	close(errorChannel)  // close the error channel
 
-	return solution, nil
+	return result, nil
 }
 
-// createSolveWorkers create the task.Workers that will process Tasks
-// provided by the tasks channel
-func createSolveWorkers(numCPUs int, tasks chan solver.Task, results chan task.Result, errors chan error, stopChannel chan task.Signal) (task.Workers, error) {
-	result := make(task.Workers, numCPUs)
+// createSolveWorkers create the Workers that will process puzzles
+// provided by the puzzles channel
+func createSolveWorkers[PT solver.Puzzle](numCPUs int, solver solver.Solver[PT], puzzles chan PT, results chan PT, errors chan error, stopChannel chan Signal) (Workers, error) {
+	result := make(Workers, numCPUs)
 
 	for i := 0; i < numCPUs; i++ {
 		name := fmt.Sprintf("Worker-%02d", i)
-		result[i] = NewSolveWorker(name, tasks, results, errors, stopChannel)
+		result[i] = NewSolveWorker(name, solver, puzzles, results, errors, stopChannel)
 	}
 
 	return result, nil
 }
 
-// Start the given task worker of tasks and when done signal completed on the given wait group
-func (worker *SolveWorker) Start(wg *sync.WaitGroup) {
+// Start the given worker and when done signal completed on the given wait group
+func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
 	for {
-		// read from the tasks channel
-		var t solver.Task
+		// read from the puzzles channel
+		var p PT
 		select {
-		case t = <-worker.TaskChannel:
-			// get the concrete task
-			//t = tsk.(solver.Task)
+		case p = <-worker.PuzzleChannel:
 		case <-worker.StopChannel: // check if we are stopped
 			worker.Stop()
 			wg.Done()
 			return
 		}
 
-		// use the Solver to solve the puzzle in the task
+		// use the Solver to solve the puzzle
 		// results in a []Puzzle
-		ps, rs, err := t.Solver.Solve(t.Puzzle)
+		ps, rs, err := worker.Solver.Solve(p)
 		if err != nil {
-			// log the reason that the board could not be solved
+			// put the error why puzzle could not be solved
+			// on the error channel
 			err = fmt.Errorf("%s: failed solving: %s", worker.Name, err)
 			worker.ErrorChannel <- err
 		}
@@ -108,17 +105,14 @@ func (worker *SolveWorker) Start(wg *sync.WaitGroup) {
 			worker.ResultChannel <- r
 		}
 
-		// put the puzzles returned from the solver on the task queue
+		// put the puzzles returned from the solver on the puzzle queue
 		for _, p := range ps {
-			tsk := solver.Task{Puzzle: p,
-				Solver: t.Solver}
+			worker.PuzzleChannel <- p
 
-			worker.TaskChannel <- tsk
-
-			// log the current size of the task queue
-			noTasks := len(worker.TaskChannel)
-			if (noTasks % 10000) == 0 {
-				log.Printf("Current number of tasks: %d\n", noTasks)
+			// log the current size of the puzzle queue
+			noPuzzles := len(worker.PuzzleChannel)
+			if (noPuzzles % 10000) == 0 {
+				log.Printf("Current number of puzzless: %d\n", noPuzzles)
 				log.Printf("Last Puzzle added\n%s", p)
 			}
 		}
@@ -126,6 +120,6 @@ func (worker *SolveWorker) Start(wg *sync.WaitGroup) {
 }
 
 // Stop the SolverWorker signal wait group that we are done
-func (worker *SolveWorker) Stop() {
+func (worker *SolveWorker[PT]) Stop() {
 	log.Printf("Stopped worker %s\n", worker.Name)
 }

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var _ solver.Solver = puzzle.Question20Solver{}
+var _ solver.Solver[puzzle.Puzzle] = puzzle.Question20Solver[puzzle.Puzzle]{}
 
 func main() {
 	defer util.LogDuration(time.Now(), "question20")
@@ -20,15 +20,15 @@ func main() {
 		log.Fatalf("could not create puzzle")
 	}
 	// create the solver for the question20
-	s := puzzle.Question20Solver{}
+	s := puzzle.Question20Solver[puzzle.Puzzle]{}
 	// start the worker.Solve with the starting question20 and the solver
-	result, err := worker.Solve(p, s)
+	result, err := worker.Solve[puzzle.Puzzle](p, s)
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
 
 	// get the concrete type of solution
-	solution := result.(*puzzle.Puzzle)
-	fmt.Printf("Solution is\n: %s", solution)
-	fmt.Printf("Total of all cells is: %d\n", solution.Total())
+	//solution := result.(*puzzle.Puzzle)
+	fmt.Printf("Solution is\n: %s", result)
+	fmt.Printf("Total of all cells is: %d\n", result.Total())
 }

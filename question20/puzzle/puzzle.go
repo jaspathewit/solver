@@ -5,8 +5,6 @@ import (
 	"log"
 )
 
-type Puzzles []Puzzle
-
 type Puzzle struct {
 	Board  []Cells
 	Labels Labels
@@ -18,7 +16,7 @@ type Puzzle struct {
 // an "array" of 12 by 12 is used with the actual
 // board running from 2:10 this simplifies checking
 // for values in the knight move locations
-func NewPuzzle() (*Puzzle, error) {
+func NewPuzzle() (Puzzle, error) {
 	result := Puzzle{}
 	result.Dice = NewDice()
 
@@ -44,7 +42,7 @@ func NewPuzzle() (*Puzzle, error) {
 	// record the first cell value from the top face of the dice
 	result.Board[result.Dice.Row][result.Dice.Col].Value = result.Dice.Top
 
-	return &result, nil
+	return result, nil
 }
 
 // Clone constructs a clone of the question20.Puzzle
@@ -52,7 +50,7 @@ func NewPuzzle() (*Puzzle, error) {
 // question20 will have the same slices for the board
 // Labels is not cloned that is only added to the question20
 // during the CCL algorithum
-func (p Puzzle) Clone() *Puzzle {
+func (p Puzzle) Clone() Puzzle {
 
 	result, err := NewPuzzle()
 	if err != nil {

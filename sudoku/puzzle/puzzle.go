@@ -20,7 +20,7 @@ type Puzzle struct {
 }
 
 // NewPuzzle create a new puzzle of the given topology
-func NewPuzzle(topology Topology) (*Puzzle, error) {
+func NewPuzzle(topology Topology) (Puzzle, error) {
 	result := Puzzle{Topology: topology}
 	result.cellIndex = make(map[string]*Cell)
 	result.Cells = make([]string, 0)
@@ -30,30 +30,30 @@ func NewPuzzle(topology Topology) (*Puzzle, error) {
 
 		neighbourPeers, err := topology.NeigbourPeers().FindPeersFor(c.Ref)
 		if err != nil {
-			return nil, fmt.Errorf("neighbour: %s", err)
+			return Puzzle{}, fmt.Errorf("neighbour: %s", err)
 		}
 		c.NeighbourPeers = neighbourPeers
 
 		rowPeers, err := topology.RowPeers().FindPeersFor(c.Ref)
 		if err != nil {
-			return nil, fmt.Errorf("row: %s", err)
+			return Puzzle{}, fmt.Errorf("row: %s", err)
 		}
 		c.RowPeers = rowPeers
 
 		colPeers, err := topology.ColPeers().FindPeersFor(c.Ref)
 		if err != nil {
-			return nil, fmt.Errorf("col: %s", err)
+			return Puzzle{}, fmt.Errorf("col: %s", err)
 		}
 		c.ColPeers = colPeers
 
 		// add the cell
 		result.Add(c)
 	}
-	return &result, nil
+	return result, nil
 }
 
 // Clone clones a puzzle
-func (p Puzzle) Clone() *Puzzle {
+func (p Puzzle) Clone() Puzzle {
 	result, err := NewPuzzle(p.Topology)
 	if err != nil {
 		log.Panic("could not clone puzzle")

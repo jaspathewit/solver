@@ -6,13 +6,13 @@ import (
 )
 
 // SudokuSolver as solver for Sudokus
-type SudokuSolver struct{}
+type SudokuSolver[PT solver.Puzzle] struct{}
 
 // Solve solves one step of the Sudoku
-func (_ SudokuSolver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzles, error) {
+func (_ SudokuSolver[PT]) Solve(puzzle Puzzle) ([]Puzzle, []Puzzle, error) {
 	// get the concrete type of the puzzle
-	puz := puzzle.(*Puzzle)
-	ps := make(solver.Puzzles, 0, 4)
+	// puz := puzzle.(*Puzzle)
+	ps := make([]Puzzle, 0, 4)
 
 	//fmt.Printf("All Possibles:\n")
 	//for _, ref := range g.Cells {
@@ -21,7 +21,7 @@ func (_ SudokuSolver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzle
 	//}
 
 	// eliminate all possibles
-	for puz.EliminatePossibles() {
+	for puzzle.EliminatePossibles() {
 	}
 
 	fmt.Printf("Possibles Eliminated:\n")
@@ -31,7 +31,7 @@ func (_ SudokuSolver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzle
 	//}
 
 	// check that all cells without a value have at least 2 possibles
-	if puz.ImpossibleSolution() {
+	if puzzle.ImpossibleSolution() {
 		fmt.Printf("Impossible Solution\n")
 		return nil, nil, nil
 	}
@@ -43,15 +43,15 @@ func (_ SudokuSolver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzle
 	//}
 
 	// check if the puzzle is solved
-	if puz.Solved() {
-		ps = append(ps, puz)
+	if puzzle.Solved() {
+		ps = append(ps, puzzle)
 		return nil, ps, nil
 	}
 
 	// not solved yet
 	// get the reference to the cell with the fewest possibles
-	ref := puz.GetRefWithFewestPossibles()
-	c, _ := puz.Get(ref)
+	ref := puzzle.GetRefWithFewestPossibles()
+	c, _ := puzzle.Get(ref)
 
 	// get the possibles values for that cell
 	possibles := c.PossibleValues()
@@ -59,7 +59,7 @@ func (_ SudokuSolver) Solve(puzzle solver.Puzzle) (solver.Puzzles, solver.Puzzle
 	// loop through all the possible values
 	for _, v := range possibles {
 		// clone the puzzle
-		pc := puz.Clone()
+		pc := puzzle.Clone()
 
 		// set the value on the cell
 		c, _ := pc.Get(ref)

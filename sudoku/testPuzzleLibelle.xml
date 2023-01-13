@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Sudoku Topology="Normal">
+<Row>.52.68.3.</Row>
+<Row>.7..5.92.</Row>
+<Row>.3..1...6</Row>
+<Row>.........</Row>
+<Row>..4..56..</Row>
+<Row>..3.4.2..</Row>
+<Row>19...2.6.</Row>
+<Row>.......62</Row>
+<Row>....8.1..</Row>
+</Sudoku>

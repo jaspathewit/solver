@@ -11,15 +11,17 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+*.code-workspace
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 /.idea/modules.xml
 /.idea/question20.iml
 /.idea/vcs.xml
-workspace.code-workspace
 /question20/question20.exe
 /question20/question20
 /question20/question20.log
 /sudoku/sudoku.exe
+/sudoku/sudoku.log
 /sudoku/sudoku
 /bin/

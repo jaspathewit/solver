@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"solver/core/solver/worker"
-	"solver/sudoku/puzzle"
+	"solver/hashi/puzzle"
 
 	"github.com/spf13/cobra"
 )
 
-var mapTopologyTypeToTopology = map[TopologyType]puzzle.Topology{TopologyTypeNormal: puzzle.Normal{}, TopologyTypeSamuri: puzzle.Samuri{}}
+var mapTopologyTypeToTopology = map[TopologyType]puzzle.Topology{TopologyTypeNormal: puzzle.Normal{}}
 
 // Default command loads the sudoku from a file and solves it
 func Default(cmd *cobra.Command, args []string) error {
-	p, err := loadSudokuFromFile(inputFilename)
+	p, err := loadHashiFromFile(inputFilename)
 	if err != nil {
 		return fmt.Errorf("failed to load puzzel: %s", err)
 	}
 
 	// create the solver for the suduku
-	s := puzzle.SudokuSolver[puzzle.Puzzle]{}
+	s := puzzle.HashiSolver[puzzle.Puzzle]{}
 	// start the worker.Solve with the starting sudoku and the solver
 	result, err := worker.Solve[puzzle.Puzzle](p, s)
 	if err != nil {
@@ -31,13 +31,13 @@ func Default(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func loadSudokuFromFile(filename string) (puzzle.Puzzle, error) {
+func loadHashiFromFile(filename string) (puzzle.Puzzle, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return puzzle.Puzzle{}, fmt.Errorf("could not load file [%s]: %s", filename, err)
 	}
 
-	s := Sudoku{}
+	s := Hashi{}
 
 	err = xml.Unmarshal([]byte(data), &s)
 	if err != nil {

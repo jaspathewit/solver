@@ -1,7 +1,6 @@
 package puzzle
 
 import (
-	"fmt"
 	"solver/core/solver"
 )
 
@@ -24,23 +23,11 @@ func (_ SudokuSolver[PT]) Solve(puzzle Puzzle) ([]Puzzle, []Puzzle, error) {
 	for puzzle.EliminatePossibles() {
 	}
 
-	fmt.Printf("Possibles Eliminated:\n")
-	//for _, ref := range g.Cells {
-	//	c, _ := g.Get(ref)
-	//	fmt.Printf("Cell: %s\n", c)
-	//}
-
 	// check that all cells without a value have at least 2 possibles
 	if puzzle.ImpossibleSolution() {
-		fmt.Printf("Impossible Solution\n")
+		// fmt.Printf("Impossible Solution\n")
 		return nil, nil, nil
 	}
-
-	//fmt.Printf("Possibles Eliminated:\n")
-	//for _, ref := range g.Cells {
-	//	c, _ := g.Get(ref)
-	//	fmt.Printf("Cell: %s\n", c)
-	//}
 
 	// check if the puzzle is solved
 	if puzzle.Solved() {

@@ -10,8 +10,9 @@ import (
 
 // SolveWorker concrete Worker implementation that solves puzzles
 type SolveWorker[PT solver.Puzzle] struct {
-	Name          string
-	Solver        solver.Solver[PT]
+	Name   string
+	Solver solver.Solver[PT]
+	//PuzzleQueue   *queue.Queue[PT]
 	PuzzleChannel chan PT
 	ResultChannel chan PT
 	ErrorChannel  chan error
@@ -20,7 +21,13 @@ type SolveWorker[PT solver.Puzzle] struct {
 
 // NewSolveWorker return the worker that will process the Puzzles and put the results on the resultChannel
 func NewSolveWorker[PT solver.Puzzle, ST solver.Solver[PT]](name string, solver ST, puzzleChannel chan PT, resultChannel chan PT, errorChannel chan error, stopChannel chan Signal) *SolveWorker[PT] {
-	return &SolveWorker[PT]{Name: name, Solver: solver, PuzzleChannel: puzzleChannel, ResultChannel: resultChannel, ErrorChannel: errorChannel, StopChannel: stopChannel}
+	return &SolveWorker[PT]{Name: name,
+		Solver: solver,
+		//PuzzleQueue:   queue.New[PT](),
+		PuzzleChannel: puzzleChannel,
+		ResultChannel: resultChannel,
+		ErrorChannel:  errorChannel,
+		StopChannel:   stopChannel}
 }
 
 // Solve creates SolveWorkers and initiates the solving process
@@ -28,11 +35,12 @@ func Solve[PT solver.Puzzle](p PT, s solver.Solver[PT]) (PT, error) {
 	numCPUs := runtime.NumCPU()
 	//numCPUs := 1
 	// channel on which puzzles can be submitted (Larger than the number of Workers)
-	puzzleChannel := make(chan PT, numCPUs*1000)
+	puzzleChannel := make(chan PT, numCPUs*1000000)
 	// channel on which the solved Puzzle is received
 	resultChannel := make(chan PT, 1)
 	// channel on which errors can be submitted
 	errorChannel := make(chan error, numCPUs+10)
+	go ErrorHandler(errorChannel)
 
 	// channel to control the workers
 	stopChannel := make(chan Signal, 1)
@@ -48,7 +56,6 @@ func Solve[PT solver.Puzzle](p PT, s solver.Solver[PT]) (PT, error) {
 	}
 
 	workers.Start(&wg)
-	go ErrorHandler(errorChannel)
 
 	// put the puzzle on the channel
 	puzzleChannel <- p
@@ -79,6 +86,8 @@ func createSolveWorkers[PT solver.Puzzle](numCPUs int, solver solver.Solver[PT],
 
 // Start the given worker and when done signal completed on the given wait group
 func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
+	//for {
+	// read puzzles from the puzzle channel till a limit is reached
 	for {
 		// read from the puzzles channel
 		var p PT
@@ -89,6 +98,15 @@ func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
 			wg.Done()
 			return
 		}
+
+		//worker.PuzzleQueue.Enqueue(p)
+		//log.Printf("Worker %s channel size %d", len(worker.PuzzleChannel))
+		//if len(worker.PuzzleChannel) < 500 {
+		//	break
+		//}
+
+		// loop through the queued puzzles
+		//worker.PuzzleQueue.Each(func(p PT) {
 
 		// use the Solver to solve the puzzle
 		// results in a []Puzzle
@@ -105,19 +123,23 @@ func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
 			worker.ResultChannel <- r
 		}
 
-		// put the puzzles returned from the solver on the puzzle queue
+		// put the puzzles returned from the solver on the puzzle channel
+		//log.Printf("Adding %d puzzles to the channel of %d", len(ps), len(worker.PuzzleChannel))
 		for _, p := range ps {
 			worker.PuzzleChannel <- p
 
 			// log the current size of the puzzle queue
 			noPuzzles := len(worker.PuzzleChannel)
-			if (noPuzzles % 10000) == 0 {
-				log.Printf("Current number of puzzless: %d\n", noPuzzles)
+			if (noPuzzles % 1000) == 0 {
+				log.Printf("Current number of puzzles: %d\n", noPuzzles)
 				log.Printf("Last Puzzle added\n%s", p)
 			}
 		}
+		//})
 	}
 }
+
+//}
 
 // Stop the SolverWorker signal wait group that we are done
 func (worker *SolveWorker[PT]) Stop() {

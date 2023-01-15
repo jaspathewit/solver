@@ -4,15 +4,15 @@ import (
 	"log"
 	"solver/core/solver"
 	"solver/core/util"
-	"solver/sudoku/cmd"
-	"solver/sudoku/puzzle"
+	"solver/hashi/cmd"
+	"solver/hashi/puzzle"
 	"time"
 )
 
-var _ solver.Solver[puzzle.Puzzle] = puzzle.SudokuSolver[puzzle.Puzzle]{}
+var _ solver.Solver[puzzle.Puzzle] = puzzle.HashiSolver[puzzle.Puzzle]{}
 
 func main() {
-	defer util.LogDuration(time.Now(), "sudoku")
+	defer util.LogDuration(time.Now(), "hashi")
 
 	err := cmd.Execute()
 	if err != nil {

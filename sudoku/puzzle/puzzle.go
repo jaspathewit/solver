@@ -134,6 +134,7 @@ func (p *Puzzle) EliminatePossibleValueFor(refs []string, value string) {
 
 // eliminate possible returns true if there was at least one cell that could be set
 func (p *Puzzle) EliminatePossibles() bool {
+	//util.LogDuration(time.Now(), "EliminatePossibles")
 	// go through the cells
 	result := false
 	for _, ref := range p.Cells {
@@ -161,40 +162,53 @@ func (p Puzzle) Solved() bool {
 	return true
 }
 
-// ImpossibleSolution tests if the grid so far is an impossible solution
-func (p Puzzle) ImpossibleSolution() bool {
-	// go through the cells
-	for _, ref := range p.Cells {
-		c, _ := p.Get(ref)
-		possibleValues := c.PossibleValues()
-		if c.Value() == " " && len(possibleValues) == 0 {
-			return true
-		}
-	}
-	return false
-}
+// // ImpossibleSolution tests if the grid so far is an impossible solution
+// func (p Puzzle) ImpossibleSolution() bool {
+// 	defer util.LogDuration(time.Now(), "ImpossibleSolution")
+// 	// go through the cells
+// 	for _, ref := range p.Cells {
+// 		c, _ := p.Get(ref)
+// 		possibleValues := c.PossibleValues()
+// 		if c.Value() == " " && len(possibleValues) == 0 {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 // GetRefWithFewestPossibles returns the cell reference with the fewest possible values
-func (p Puzzle) GetRefWithFewestPossibles() string {
+// if the puzzle is impossible return "" and false
+func (p Puzzle) GetRefWithFewestPossibles() (string, bool) {
+	//defer util.LogDuration(time.Now(), "GetRefWithFewestPossibles")
 	// go through the cells
 	result := ""
 	minPossibles := 9
 	for _, ref := range p.Cells {
 		c, _ := p.Get(ref)
 		numberOfPossibles := len(c.PossibleValues())
+
+		if c.Value() == " " && numberOfPossibles == 0 {
+			return "", false
+		}
+
+		// if we find a cell with only 2 possibles
+		if numberOfPossibles != 0 && numberOfPossibles < 2 {
+			return ref, true
+		}
+
 		if numberOfPossibles != 0 && numberOfPossibles < minPossibles {
 			result = ref
 			minPossibles = numberOfPossibles
 		}
 	}
-	return result
+	return result, true
 }
 
 // String return the puzzle as a printable string
 func (p Puzzle) String() string {
 	sb := strings.Builder{}
 
-	sb.WriteString("|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|\n")
+	sb.WriteString("|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|\n")
 
 	for row := 1; row < p.Topology.Rows()+1; row++ {
 		sb.WriteString("|")
@@ -223,9 +237,9 @@ func (p Puzzle) String() string {
 
 		}
 		if row%3 == 0 {
-			sb.WriteString("\n|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|\n")
+			sb.WriteString("\n|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|~~~:~~~:~~~|\n")
 		} else {
-			sb.WriteString("\n|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|\n")
+			sb.WriteString("\n|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|---:---:---|\n")
 		}
 	}
 	return sb.String()

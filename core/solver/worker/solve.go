@@ -86,7 +86,6 @@ func createSolveWorkers[PT solver.Puzzle](numCPUs int, solver solver.Solver[PT],
 
 // Start the given worker and when done signal completed on the given wait group
 func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
-	//for {
 	// read puzzles from the puzzle channel till a limit is reached
 	for {
 		// read from the puzzles channel
@@ -130,16 +129,13 @@ func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
 
 			// log the current size of the puzzle queue
 			noPuzzles := len(worker.PuzzleChannel)
-			if (noPuzzles % 1000) == 0 {
-				log.Printf("Current number of puzzles: %d\n", noPuzzles)
-				log.Printf("Last Puzzle added\n%s", p)
-			}
+			//if (noPuzzles % 1000) == 0 {
+			log.Printf("Current number of puzzles: %d\n", noPuzzles)
+			log.Printf("Last Puzzle added\n%s", p)
+			//}
 		}
-		//})
 	}
 }
-
-//}
 
 // Stop the SolverWorker signal wait group that we are done
 func (worker *SolveWorker[PT]) Stop() {

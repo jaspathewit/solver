@@ -1,6 +1,7 @@
 package puzzle
 
 import (
+	"fmt"
 	"solver/core/solver"
 )
 
@@ -13,21 +14,27 @@ func (_ SudokuSolver[PT]) Solve(puzzle Puzzle) ([]Puzzle, []Puzzle, error) {
 	// puz := puzzle.(*Puzzle)
 	ps := make([]Puzzle, 0, 4)
 
-	//fmt.Printf("All Possibles:\n")
-	//for _, ref := range g.Cells {
-	//	c, _ := g.Get(ref)
-	//	fmt.Printf("Cell: %s\n", c)
-	//}
+	// fmt.Printf("All Possibles:\n")
+	// for _, ref := range puzzle.Cells {
+	// 	c, _ := puzzle.Get(ref)
+	// 	fmt.Printf("Cell: %s\n", c)
+	// }
 
 	// eliminate all possibles
 	for puzzle.EliminatePossibles() {
 	}
 
+	// fmt.Printf("Elim All Possibles:\n")
+	// for _, ref := range puzzle.Cells {
+	// 	c, _ := puzzle.Get(ref)
+	// 	fmt.Printf("Cell: %s\n", c)
+	// }
+
 	// check that all cells without a value have at least 2 possibles
-	if puzzle.ImpossibleSolution() {
-		// fmt.Printf("Impossible Solution\n")
-		return nil, nil, nil
-	}
+	// if puzzle.ImpossibleSolution() {
+	// 	fmt.Printf("Impossible Solution\n")
+	// 	return nil, nil, nil
+	// }
 
 	// check if the puzzle is solved
 	if puzzle.Solved() {
@@ -37,7 +44,12 @@ func (_ SudokuSolver[PT]) Solve(puzzle Puzzle) ([]Puzzle, []Puzzle, error) {
 
 	// not solved yet
 	// get the reference to the cell with the fewest possibles
-	ref := puzzle.GetRefWithFewestPossibles()
+	ref, ok := puzzle.GetRefWithFewestPossibles()
+	if !ok {
+		fmt.Printf("Impossible Solution\n")
+		return nil, nil, nil
+	}
+
 	c, _ := puzzle.Get(ref)
 
 	// get the possibles values for that cell

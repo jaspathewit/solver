@@ -32,9 +32,13 @@ func NewDice() Dice {
 }
 
 // String prints a string representation of a dice Top and 4 sides
-//  N
+//
+//	N
+//
 // WTE
-//  S
+//
+//	S
+//
 // ┌└┘┐│─
 func (d Dice) String() string {
 	var buffer bytes.Buffer

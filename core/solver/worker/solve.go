@@ -10,9 +10,8 @@ import (
 
 // SolveWorker concrete Worker implementation that solves puzzles
 type SolveWorker[PT solver.Puzzle] struct {
-	Name   string
-	Solver solver.Solver[PT]
-	//PuzzleQueue   *queue.Queue[PT]
+	Name          string
+	Solver        solver.Solver[PT]
 	PuzzleChannel chan PT
 	ResultChannel chan PT
 	ErrorChannel  chan error
@@ -22,8 +21,7 @@ type SolveWorker[PT solver.Puzzle] struct {
 // NewSolveWorker return the worker that will process the Puzzles and put the results on the resultChannel
 func NewSolveWorker[PT solver.Puzzle, ST solver.Solver[PT]](name string, solver ST, puzzleChannel chan PT, resultChannel chan PT, errorChannel chan error, stopChannel chan Signal) *SolveWorker[PT] {
 	return &SolveWorker[PT]{Name: name,
-		Solver: solver,
-		//PuzzleQueue:   queue.New[PT](),
+		Solver:        solver,
 		PuzzleChannel: puzzleChannel,
 		ResultChannel: resultChannel,
 		ErrorChannel:  errorChannel,
@@ -98,15 +96,6 @@ func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
 			return
 		}
 
-		//worker.PuzzleQueue.Enqueue(p)
-		//log.Printf("Worker %s channel size %d", len(worker.PuzzleChannel))
-		//if len(worker.PuzzleChannel) < 500 {
-		//	break
-		//}
-
-		// loop through the queued puzzles
-		//worker.PuzzleQueue.Each(func(p PT) {
-
 		// use the Solver to solve the puzzle
 		// results in a []Puzzle
 		ps, rs, err := worker.Solver.Solve(p)
@@ -129,10 +118,10 @@ func (worker *SolveWorker[PT]) Start(wg *sync.WaitGroup) {
 
 			// log the current size of the puzzle queue
 			noPuzzles := len(worker.PuzzleChannel)
-			//if (noPuzzles % 1000) == 0 {
-			log.Printf("Current number of puzzles: %d\n", noPuzzles)
-			log.Printf("Last Puzzle added\n%s", p)
-			//}
+			if (noPuzzles % 10000) == 0 {
+				log.Printf("Current number of puzzles: %d\n", noPuzzles)
+				log.Printf("Last Puzzle added\n%s", p)
+			}
 		}
 	}
 }
